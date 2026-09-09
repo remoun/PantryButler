@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      # pnpm 10, not the 9 docker/Dockerfile pins: pnpm 9 refuses to install a
+      # repo whose pnpm-workspace.yaml has no `packages` field, and this one
+      # has none. The image gets away with 9 only because .dockerignore keeps
+      # pnpm-workspace.yaml out of the build context. No setup-node pnpm cache,
+      # which would need pnpm on PATH before setup-node runs; the install takes
+      # a few seconds unaided.
+      - run: npm install -g pnpm@10
+      - run: pnpm install --frozen-lockfile
+
+      # Each gate is its own step so a red check names the gate that failed
+      # instead of one opaque "lint" line.
+      - run: npm run lint:types
+      - run: npm run lint:biome
+      - run: npm run lint:rules
+      - run: npm run lint:css
+      - run: npm run lint:build
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      # pnpm 10, not the 9 docker/Dockerfile pins: pnpm 9 refuses to install a
+      # repo whose pnpm-workspace.yaml has no `packages` field, and this one
+      # has none. The image gets away with 9 only because .dockerignore keeps
+      # pnpm-workspace.yaml out of the build context. No setup-node pnpm cache,
+      # which would need pnpm on PATH before setup-node runs; the install takes
+      # a few seconds unaided.
+      - run: npm install -g pnpm@10
+      - run: pnpm install --frozen-lockfile
+      - run: npm run test:db
+      - run: npm run install:server
+      - run: npm test
+
+  docker:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: docker build -f docker/Dockerfile .
