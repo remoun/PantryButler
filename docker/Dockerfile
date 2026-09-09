@@ -49,8 +49,9 @@ RUN rm -rf node_modules && npm install --omit=dev
 FROM node:20-alpine
 WORKDIR /app
 
-# Create required directories
-RUN mkdir -p /app/uploads
+# Create required directories. Owned by the unprivileged user the server
+# runs as, since uploads are the only path it writes to.
+RUN mkdir -p /app/uploads && chown -R node:node /app/uploads
 
 # Copy built frontend
 COPY --from=frontend-builder /build/dist ./public
@@ -62,6 +63,10 @@ COPY --from=frontend-builder /build/setup ./setup
 COPY --from=backend-builder /build/dist ./dist
 COPY --from=backend-builder /build/node_modules ./node_modules
 COPY --from=backend-builder /build/package.json ./
+
+# Everything above is copied as root and only needs to be readable. The
+# server itself has no reason to run privileged.
+USER node
 
 EXPOSE 3000
 
