@@ -5,8 +5,9 @@ import { existsSync } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { query } from '../db/pool';
+import { config } from '../utils/config';
 
-const UPLOADS_DIR = path.resolve(process.cwd(), 'server/uploads');
+const UPLOADS_DIR = config.uploadsDir;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MIME_MAP: Record<string, string> = {
   '.jpg': 'image/jpeg',
