@@ -50,6 +50,10 @@ export const config = {
   appUrl: process.env.APP_URL || process.env.CORS_ORIGIN || 'http://localhost:3000',
   publicDir: process.env.PUBLIC_DIR || path.resolve(__dirname, '../public'),
   setupDir: process.env.SETUP_DIR || path.resolve(__dirname, '../../../setup'),
+  // Where uploaded recipe and step images are written. Docker sets this to
+  // the mounted volume; without it the files land under the working
+  // directory and do not survive a container rebuild.
+  uploadsDir: process.env.UPLOADS_DIR || path.resolve(process.cwd(), 'server/uploads'),
   enableAdminFeatures: process.env.ENABLE_ADMIN_FEATURES === 'true',
   // Email verification for instance creators. Defaults to tracking the
   // admin-features switch (feature off → no verification required); the

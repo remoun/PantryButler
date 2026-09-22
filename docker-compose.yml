@@ -37,6 +37,10 @@ services:
       # then localhost. Can also be set from the admin config page.
       APP_URL: ${APP_URL:-}
       PUBLIC_DIR: /app/public
+      # Must match the uploads volume mount below. Without it the server
+      # writes into the container's own filesystem and images are lost on
+      # the next rebuild.
+      UPLOADS_DIR: /app/uploads
       SETUP_DIR: /app/setup
       VITE_API_URL: ""
       # Enabled by default for the dev/test stack: the superadmin admin API
